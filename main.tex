@@ -1,0 +1,85 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx} 
+\usepackage[ngerman]{babel}
+\usepackage{amsmath}
+\usepackage{parskip}
+\usepackage[backend=biber]{biblatex}
+\usepackage{csquotes}
+\usepackage[hidelinks]{hyperref}
+\usepackage{bookmark}
+\usepackage{lipsum}
+\usepackage[T1]{fontenc}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{setspace}
+\usepackage{float}
+
+
+\lstdefinestyle{code}{
+  basicstyle=\ttfamily\footnotesize,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  breaklines=true,
+  columns=fullflexible,
+  tabsize=4,
+  frame=single,
+  showstringspaces=false
+}
+\lstset{style=code}
+
+\usepackage[a4paper,top=2cm,bottom=2cm,left=2cm,right=2cm,marginparwidth=1.75cm]{geometry}
+\graphicspath{ {./images/} }
+
+%\addbibresource{library.bib}
+%\addbibresource{maxi.bib}
+
+\begin{document}
+\singlespacing %Zeilenabstand 1,0
+\pagenumbering{gobble}
+\input{deckblatt}
+
+\newpage
+\pagenumbering{roman}
+\tableofcontents
+\newpage
+
+\onehalfspacing %Zeilenabstand: 1,5
+\pagenumbering{arabic}
+\newgeometry{top=2cm,bottom=2cm,left=2cm,right=4cm}
+\section{Einleitung}
+\lipsum[1]
+\lipsum[2]
+
+\input{hannes}
+
+\input{maxi}
+
+\newpage
+\singlespacing %Zeilenabstand: 1,0
+\pagenumbering{roman}
+\newgeometry{top=2cm,bottom=2cm,left=2cm,right=2cm}
+\newpage
+\printbibliography[heading=bibintoc]
+\appendix
+\newpage
+\section*{Abbildungsverzeichnis}
+\addcontentsline{toc}{section}{Abbildungsverzeichnis}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/complexity.png}
+    \caption{Tatsächliches Diagramm zur Modellbewertung \cite[S.~220]{tesl}}
+    \label{fig:complexity}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{images/rolling.png}
+    \caption{Diagramm zur Visualisierung von Rolling-Features}
+    \label{fig:rolling}
+\end{figure}
+\newpage
+\input{hilfsmittel}
+
+
+\end{document}

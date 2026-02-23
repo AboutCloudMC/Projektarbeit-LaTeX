@@ -1,0 +1,171 @@
+\section{Technische Umsetzung}
+
+\subsection{Datenaufbereitung}
+
+\subsubsection{Herkunft und Umfang der Kursdaten}
+
+\paragraph{Herkunf}
+Die historischen Kursdaten der untersuchten Aktienticker werden über die Finanzplattform \textit{Yahoo Finance} \cite{yahoo} bezogen. Der Zugriff erfolgt mittels des Python-Pakets \textit{yfinance} \cite{yfinance}, das eine programmgesteuerte Abfrage von Open-High-Low-Close-Volume-(OHLCV)-Daten ermöglicht. \cite[S.~351]{mckinney_python_2018}
+
+Die Datenbeschaffung ist vollständig konfigurierbar. Insbesondere können die Liste der betrachteten Ticker, der Zeitraum (Start- und Enddatum) sowie das Zeitintervall der Kurse (z. B. tägliche oder wöchentliche Daten) parametrisiert werden. Dadurch ist eine flexible Anpassung des Datensatzes an unterschiedliche Modellierungs- und Evaluierungsszenarien möglich.
+
+Für die vorliegende Untersuchung werden Zeitreihen mit einer Länge von mindestens zehn Jahren verwendet, um robuste Aussagen über die Modellperformance unter verschiedenen Marktphasen treffen zu können.
+
+\paragraph{Cache Mechanismus}
+Zur effizienten Durchführung mehrerer Experimentdurchläufe beinhaltet das Programm einen Cache-Mechanismus. Dieser speichert die bereits über \textit{yfinance} heruntergeladenen Daten lokal, um die benötigte Zeit für wiederholte Durchläufe zu verkürzen.
+
+Die gespeicherten Daten sind auschließliche rohe OHLCV Daten. Jegliche Datenverarbeitung, darunter auch die Feature-Generierung, erfolgt bei jedem Durchlauf erneut. Dadurch wird sichergestellt, dass Änderungen an der Konfiguration bei einem neuen Durchlauf berücksichtigt werden.
+
+\subsubsection{Feature-Engineering} \label{features}
+Da rohe OHLCV Daten nur begrenzt direkt modellierbare Strukturen beinhalten, werden im rahmen des Feature-Engineerings zusätliche Merkmale generiert. Die bilden dann besser modellierbare Eigenschaften der Zeitreihe ab.
+
+Aktienpreise folgen typischerweise keinem stationären Prozess, sondern können näherungsweise als Random Walk mit Drift modelliert werden \cite[S.~65]{tsay_analysis_2005}. Dabei verändert sich der Mittelwert über die Zeit, wodurch klassische Machine-Learning-Modelle zeitlich instabile Strukturen erlernen \cite[S.~64]{tsay_analysis_2005}.
+
+\paragraph{Logarithmische Renditen}
+Finanzprozesse sind multiplikativer Natur, wodurch sich der Preis $P_t$ zum Zeitpunkt $t$ durch \cite[S.~3]{tsay_analysis_2005}
+\[
+  P_t = P_{t-1} \cdot (1 + R_t)
+\]
+beschreiben lässt, wobei $R_t$ die einfache Rendite zwischen den Zeitpunkten $t-1$ und $t$ darstellt. Äquivalent gilt
+\[
+  R_t = \frac{P_t}{P_{t-1}}-1
+\]
+Da diese multiplikative Struktur statistisch schwer handhabbar ist, kann sie durch den natürlichen Logarithmus auch in einer additive Form dargestellt werden. \cite[S.~5]{tsay_analysis_2005}
+\begin{equation}
+    r_t = \ln(1+R_t) = \ln \frac{P_t}{P_{t-1}} = p_t - p_{t-1}
+\end{equation}
+
+Daraus ergiebt sich, dass die einfache Rendite $R_1$ die prozentuale Veränderung zweier einfacher Preise $P$ ist, während die logarithmische Rendite $r_t$ die Differenz zweier logarithmischer Preise $p$ ist.
+
+\paragraph{Autoregression} \label{autoregression}
+Lag Features, auch verzögerte Variablen (lagged variables) genannt, repräsentieren die Vergangenheitswerte einer Zeitreihe und dienen dazu, serielle Abhängigkeiten wie Autokorrelation in einem Modell abzubilden. Ein Lag der Ordnung $k$ entspricht dem Wert einer Variable zum Zeitpunkt $t-k$. Zum Beispiel, wäre $r_{t-1}$ das Lag 1. Ordnung einer Rendite $r_t$.
+
+Außerdem bilden Lag-Features das Grundprinzip klassicher autoregressiver Modelle $AR(p)$. Dabei bezeichnet $p$ nicht den logarithmische Preis, sondern die Ordnung des Modells. Für die Rendite $r_t$ ergibt sich ein autoregressives Modell der Ordnung $p$ für
+\begin{equation}
+  r_t = \phi_0 + \phi_1r_{t-1} + \dots + \phi_pr_{t-p} + a_t 
+\end{equation}
+
+wobei $\phi_0$ eine Konstante darstellt, $\phi_1,\dots,\phi_p$ die Regressionskoeffizienten der jeweiligen Verzögerung sind und $a_t$ den Effekt von weißem Rauschen darstellt. \cite[Kapitel 10.6]{fpp} \cite[S.~33]{tsay_analysis_2005}
+
+In der Finanzmarktanalyse wird diese serielle Abhängigkeit oft als Momentum-Effekt interpretiert. Ein $AR$-Modell mit positiven Koeffizienten $(\phi>0)$ bildet hierbei die statistische Grundlage für Momentum, da es mathematisch beschreibt, dass auf positive Renditen der Vergangenheit mit einer gewissen Wahrscheinlichkeit positive Renditen in der Gegenwart folgen. Durch die Einbeziehung mehrerer Lags kann das Modell somit komplexere Momentum-Muster über unterschiedliche Zeithorizonte hinweg extrahieren.
+
+Allerdings stellt die maximale Lag Ordnung $p$, oder auch $\text{max\_lag}$ im Programm, einen zentralen Modellierungsentscheid da. Während eine größere Anzahl von Lags potenziell zusätzliche Informationen liefern, erhöhen sie zugleich die Dimensionalität des Feature-Raums und damit das Risiko von Overfitting. Wie man in Abb.~\ref{fig:complexity} erkennen kann, ensteht ein Overfit an dem Punkt, wo der Prediction Error mit zunehmender Komplexität des Modells steigt anstatt zu sinken wie vorher. \cite[S.~220f.]{tesl}
+
+\paragraph{Rolling Fenster}
+Zur Extraktion lokaler Trend- und Regimeinformationen werden sogennante Rolling Features verwendet. Dabei werden statistische Daten über ein gleitendes Zeitfenster $w$ berechnet, welches sich dann über die Zeitreihe verschiebt. Ziel dieser Transformation ist es, kurzfristige Schwankungen zu glätten und gleichzeitig lokale Strukturen für das Modell sichtbar zu machen. \cite[S.~354f.]{mckinney_python_2018}
+
+Im Programm werden für jedes definiertes Fenster $w \in \{5,10,20\}$ folgende Merkmale generiert:
+\begin{itemize}
+  \item \textbf{rolling\_mean\_w} bildet einen gleitenden Mittelwert des Schlusskurses ab und dient als Indikator für das lokale Preisniveau bzw. kurzfristige Trendrichtung. \cite[S.~355]{mckinney_python_2018}
+  \item \textbf{rolling\_std\_w} bildet eine gleitende Standardabweichung ab und dient als Maß für die kurzfristige Volatilität. \cite[S.~356]{mckinney_python_2018}
+  \item \textbf{rolling\_min\_w} und \textbf{rolling\_max\_w} bilden lokale Extremwerte ab, die Informationen über Range-Strukturen oder mögliche Breakout-Situationen liefern. \cite[S.~160]{mckinney_python_2018}
+\end{itemize}
+
+%TODO: Eigene Digramme um die Effekte der verschiedenen Rolling Features zu zeigen
+
+Die Effekte der Rolling-Features werden in Abb.~\ref{fig:rolling} deutlich und wurden erzeugt mithilfe des \textit{rolling}-Operators der Python Bibliothek \textit{pandas} \cite{pandas}, sowie Aggregationsfunktionen wie \verb|mean()|, \verb|std()|, \verb|min()| und \verb|max()|. Die Wahl der Fenstergröße $w$ unterliegt einem klassischen Bias-Varianz-Tradeoff, denn während kleiner Fenster schneller reagieren, sind sie auch anfälliger für Rauschen.
+
+\paragraph{Volatilitäts- und Marktaktivitätsmetriken}
+Auch Volatilität und Marktvolumen fließen als Features in die Modelle mit ein, um verschiedene Marktregime zu quantifizieren. Volatilität beschreibt den Schwankungsbereich von Kursen und damit auch das Risikoniveau, während das Marktvolumen, das in den OHLCV enthalten ist, die allgemeine Marktaktivität darstellt. \cite[S.~22]{wilder_new_1978}
+
+Die Volatilitätsmaße, die im Programm eingesetzt werden, basieren entweder auf bereits vorhandenen Rolling-Features wie der Standardabweichung \verb|rolling_std_w| oder auf \textit{J. Welles Wilder's} Average True Range (ATR). Zunächst wird für jeden Handelstag die sogenannte True Range (TR) definiert:
+
+\begin{equation}
+  \text{TR}_t = \max \left\{
+  \begin{aligned}
+    & H_t - L_t, \\
+    & |H_t - C_{t-1}|, \\
+    & |L_t - C_{t-1}|
+  \end{aligned}
+  \right\}
+\end{equation}
+wobei $H_t$ das Tageshoch, $L_t$ das Tagestief und
+$C_{t-1}$ der Schlusskurs des Vortages ist. \cite[S.~21]{wilder_new_1978} Durch diese Definition werden auch Kurslücken zwischen zwei Handelstagen berücksichtigt, wodurch die True Range ein robusteres Schwankungsmaß darstellt als die reine Intraday-Spanne. Anschließend wird der ATR als gleitender Mittelwert der True Range über eine Länge $w$, im Programm \verb|vol_window|, bestimmt:
+\begin{equation}
+  \mathrm{ATR}_t^{(w)} = \frac{1}{w}\sum_{i=0}^{w-1}\mathrm{TR}_{t-i}.
+\end{equation}
+\cite[S.~23]{wilder_new_1978}
+
+\subsubsection{Split-Strategie sowie Skalierungs- und Zielgenerierung}
+
+\paragraph{Split-Strategie}
+Das Datenset, also die OHLCV Daten, wird in Trainings-, Validierungs- und Testabschnitte getrennt. Im Programm werden 70\% der Daten für das Training und jeweils 15\% für die Validierung und den test benutzt. Das Ziel dieser Aufteilung ist es, die Generalisierungsfähigkeit der Modelle zu überprüfen und einen Lookahead-Bias sowie Overfitting zu vermeiden. \cite[S.~222]{tesl}
+
+\paragraph{Skalierung}
+Für viele Modelle, wie z.B. Ridge Regression oder Random Forest, müssen die Features standardisiert werden, da viele Algorithmen sehr empfindlich azf unterschiedliche Skalierungen bei den Inputs reagieren. Die Features werden so transformiert, dass sie einen Mittelwert von Null und eine Einheitsvarianz, also eine Standardabweichung von 1, haben. \cite[S.~604]{tesl} Außerdem ist es entscheidend, dass diese Transformationen nur auf Basis des Trainingsabschnitts berechnet werden, um sicherzustellen, dass keine Informationen aus der Zukunft, also Daten aus den Validierungs- und Testabschnitten, in das Training einfließen. \cite[S.~389]{mckinney_python_2018}
+
+\paragraph{Zielgenerierung}
+Für jeden Horizont werden genau zwei Ziele generiert: Das Regressionsziel und das Klassifikationsziel.
+
+Bei dem Regressionsziel versuchen die \textit{Ridge Regression} und \textit{Random Forest} Modelle, welche in Abschnitt \ref{regression} genauer beschrieben werden, eine volatilitätsskalierte zukünfitge Log-Rendite vorherzusagen, also einen numerischen Wert.
+
+Bei dem Klassifikationsziel hingegen, versuchen Logistikmodelle, genauer beschrieben in Abschnitt \ref{logistic}, eine sogennante Dummy-Variable zu bestimmen. Diese Variable ist entweder $0$, $1$ oder $NaN$, für dazwischen liegende Werte, und bestimmt ob der Kurs in dem jeweiligen Horizont steigen oder sinken wird. \cite[S.~10]{tesl}
+
+\subsection{Modellierung}
+\subsubsection{Regressionsmodelle} \label{regression}
+Beim Mschinellen Lernen beschreibt Regression eine Variante des überwachten Lernens (Supervised Learning), bei der das Ziel darin liegt, eine Ausgans- oder abhängige Variable $Y$ vorherzusagen. \cite[S.~10]{tesl}
+
+Lineare Regression (LR) dient als Ausgangspunkt für den Vergleich weiterer Regressionsmodelle. Sie basiert auf der Annahme eines linearen Zusammenhanges zwischen der Zielvariable und den Eingangsvariablen. Das Modell beschreibt diese Zielvariable als gewichtete Summe der Features:
+% Formel 3.1 + 2.1
+\begin{equation}
+  \hat{f}(X) = \hat{\beta}_0 + \sum_{j=1}^{p}X_j\hat{\beta}_j
+\end{equation}
+\cite[S.~11,44]{tesl}
+Dabei bezeichnet $\hat{\beta}_j$ den geschätzten Einfluss des jeweiligen Features $X_j$ auf die Zielvariable. Wenn man dies spezifisch auf das additive Fehlermodell bezieht, ensteht der Zusammenhang:
+%Formel 2.29
+\begin{equation}
+  Y = f(X) + \varepsilon
+\end{equation}
+wobei $\varepsilon$ den zufälligen Fehlerterm repräsentiert. \cite[S.~28]{tesl} Durch diesen Fehlerterm ensteht eine Differenz zwischen beobachtetem $y_i$ und vorhergesagtem $\hat{y}_i$ Wert, welche als Residuum $e_i=y_i-\hat{y}_i$ bezeichnet wird. Aus diesem Residuum wird in der Statistik die Fehlerfunktion Risidual Sum of Squares (RSS) berechnet,
+\begin{equation} \label{rss}
+  \text{RSS} = \sum_{i=1}^{N} (y_i - \hat{y}_i)^2
+\end{equation}
+da durch das Quadrieren die Fehler immer positiv sind und größere Fehler stärker gewichtet werden. Dadurch misst die RSS das "Lack of Fit", also wie schlecht das Modell zu den Daten passt. \cite[S.~12]{tesl}
+
+Durch ihre mathematische Einfachheit bringt sie auch strukturelle Nachteile mit sich. Lineare Regression wird bei einer hohen Dimensionalität instabil, also wenn die Anzahl der generierten Features $p$ größer ist, als die Anzahl der Datenpukte $N$ ($p>N$). Außerdem neigt LR bei solchen hochdimensionalen Szenario zu einer hohen Varianz. Das bedeutet, dass schon kleine Unterschiede in den Trainingsdaten zu erheblichen Änderungen der Koeffizienten des Modells führen, was zu Overfitting führt. \cite[S.~47,649]{tesl}
+
+\paragraph{Ridge Regression}
+Die Ridge Regression (RR) ist eine Erweiterung der klassischen linearen Regression, welche in hochdimensionalen Szenarien ($p \gg N$) deutlich stabiler ist. Dies wird umgesetzt durch das Hinzufügen eines Strafterms (Penalty Term) zu der Fehlerfunktion RSS aus der Formel \ref{rss}. In der Statistik wird dieses erweiterte Kriterium als Penalized Residual Sum of Squares (PRSS) bezeichnet. Die allgemeine Struktur lautet:
+%Formel 2.38
+\begin{equation}
+  \text{PRSS}(f; \lambda) = \text{RSS}(f) + \lambda J(f)
+\end{equation} \cite[S.~34]{tesl} wobei $J(f)$ die mathematische Bestrafung der Modellkomplexität und $\lambda$ den Regularisierungsparameter, welcher die Stärke der Bestrafung bestimmt, darstellt. Bei der Ridge Regression wird ein sogenannter L2 Penalty genutzt, welcher proportional zum Quadrat der Größe der Koeffizienten ist. Der Schätzer $\hat{\beta}_{\text{ridge}}$ ergibt sich somit durch die Minimierung der Funktion:
+%Formel 3.41
+\begin{equation} 
+  \hat{\beta}_{\text{ridge}} = \underset{\beta}{\text{argmin}} \left\{\sum_{i=1}^{N} \left( y_i - \beta_0 - \sum_{j=1}^{p} x_{ij}\beta_j \right)^2 + \lambda \sum_{j=1}^{p} \beta_j^2 \right\}
+\end{equation} 
+\cite[S.~62]{tesl}
+
+Hierbei ist $\lambda$ ein Komplexitätsparameter, der die Stärke der Schrumpfung kontrolliert: Je größer der Wert von $\lambda$, desto stärker wird das Modell gezwungen, die Koeffizienten in Richtung $0$ zu schrumpfen (Shrinkage). Dadurch wird erreicht, dass kein einziges Feature das gesamte Modell dominiert. Dabei entsteht zwar ein Verlust an Genauigkeit gegenüber den Trainingsdaten (Bias), allerdings lernt das Modell weniger Rauschen (Varianz) und wird damit vorhersagekräftiger für neue Daten. \cite[S.~63f.]{tesl}
+\paragraph{Random Forest}
+
+\subsubsection{Richtungsklassifikatoren} \label{logistic}
+
+\subsubsection{Klassiche Zeitreihenmodelle}
+
+\paragraph{Autoregressive Integrated Moving-Average}
+Ein ARIMA Modell ist ein autoregressives, integriertes, gleitendes Durchschnittsmodell
+
+\paragraph{Saisonalität}
+SARIMA
+
+\paragraph{Exogene Variablen}
+ARIMAX/SARIMAX
+(z. B. VIX, SPY/Branchen-ETF, Zinsen, Makrotermine)
+
+\subsubsection{Deep Learning Modelle}
+\paragraph{Long Short-Term Memory Modelle}
+\paragraph{Transformer Modelle}
+
+\subsection{Evaluierung und Ergebnisse}
+\subsubsection{Vorgehen zur Berechnung von Regressions- und Klassifikationsmetriken}
+%\lipsum[10]
+
+\subsubsection{Threshold-Suche}
+%\lipsum[11]
+
+\subsubsection{Interpretation der Resultate für verschiedene Ticker/Horizonte}
+%\lipsum[12]
+
+\subsubsection{Vergleich der Modelle}
+%\lipsum[13]
