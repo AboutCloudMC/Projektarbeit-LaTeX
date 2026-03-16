@@ -2,6 +2,7 @@
 \usepackage{graphicx} 
 \usepackage[ngerman]{babel}
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{parskip}
 \usepackage[backend=biber]{biblatex}
 \usepackage{csquotes}
@@ -15,25 +16,49 @@
 \usepackage{array}
 \usepackage{setspace}
 \usepackage{float}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{multirow}
+\usepackage{caption}
 
-
-\lstdefinestyle{code}{
-  basicstyle=\ttfamily\footnotesize,
-  numbers=left,
-  numberstyle=\tiny\color{gray},
-  breaklines=true,
-  columns=fullflexible,
-  tabsize=4,
-  frame=single,
-  showstringspaces=false
+\lstset{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{orange},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    breaklines=true,
+    frame=single,
+    extendedchars=true,
+    inputencoding=utf8,
+    literate=
+        {ä}{{\"a}}1
+        {ö}{{\"o}}1
+        {ü}{{\"u}}1
+        {Ä}{{\"A}}1
+        {Ö}{{\"O}}1
+        {Ü}{{\"U}}1
+        {ß}{{\ss}}1,
+    showspaces=false,
+    showstringspaces=false,
+    title={\lstname},
 }
-\lstset{style=code}
+
+
+% Tabellen Konfiguration
+\definecolor{bestgreen}{RGB}{0, 130, 60}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+
+\captionsetup{font=small, labelfont=bf, skip=5pt}
+\renewcommand{\arraystretch}{1.4}
 
 \usepackage[a4paper,top=2cm,bottom=2cm,left=2cm,right=2cm,marginparwidth=1.75cm]{geometry}
 \graphicspath{ {./images/} }
 
-%\addbibresource{library.bib}
-%\addbibresource{maxi.bib}
+\addbibresource{zotero.bib}
+\addbibresource{maxi.bib}
 
 \begin{document}
 \singlespacing %Zeilenabstand 1,0
@@ -49,37 +74,56 @@
 \pagenumbering{arabic}
 \newgeometry{top=2cm,bottom=2cm,left=2cm,right=4cm}
 \section{Einleitung}
-\lipsum[1]
-\lipsum[2]
+Aktienmärkte gehören zu den komplexesten Systemen, mit denen sich die moderne Wirtschaftswissenschaft beschäftigt. Ob und wie zuverlässig kurzfristige Kursbewegungen vorhergesagt werden können, ist jedoch bis heute eine unbeantwortete Frage, obwohl an den globalen Börsen täglich Milliarden bewegt werden. Diese Frage stellt genau den Ausgangspunkt der vorliegenden Projektarbeit dar.
 
+Die Motivation für dieses Thema entstand aus zwei unterschiedlichen Perspektiven: Da Maximillian sich für ein späteres Studium der Wirtschaftsinformatik interessiert und dabei insbesondere die Schnittstelle zwischen Softwareentwicklung und ökonomischen Fragestellungen faszinierend findet, befasst er sich mit der theoretischen Analyse (Abschnitt \ref{maxi}). Bei Hannes hingegen enstand, durch einen Vortrag zu Quantitative Finance während einem Auslandsjahr an einer Schule in England, das Interesse daran, wie mathematische Modelle tatsächlich auf Finanzmärkte angewendet werden. Deshalb befasst sich sein Teil mit der technischen Umsetzung der Arbeit (Abschnitt \ref{hannes}). Beide Perspektiven vereinen sich in der zentralen Frage dieser Arbeit: Lassen sich Aktienbewegungen systematisch und methodisch fundiert prognostizieren?
+
+Ziel der Arbeit ist es, unterschiedliche Modelltypen hinsichtlich ihrer Vorhersageleistung objektiv zu vergleichen. Dazu wurde ein modulares Toolkit namens CastMark entwickelt, das Kursdaten aufbereitet, technische Merkmale berechnet und verschiedene Modelle, von linearer Regression über Random Forests bis hin zu klassischen Zeitreihenmodellen, trainiert und auswertet. Die Ergebnisse werden anhand einheitlicher Metriken verglichen, um eine fundierte Aussage über die Prognostizierbarkeit von Aktienbewegungen treffen zu können.
+
+Dabei ist ausdrücklich zu betonen, dass diese Arbeit keinen Anspruch auf finanzielle Beratung erhebt und kein Handelsprodukt darstellt. Im Vordergrund steht der methodische Vergleich verschiedener Ansätze sowie die Reproduzierbarkeit der Ergebnisse.
+
+\newpage
 \input{hannes}
-
+\newpage
 \input{maxi}
+\newpage
+
+\section{Evaluierung}
+Die Resultate der beiden Abschnitte dieser Projektarbeit ergänzen sich zu einem schlüssigen Gesamtbild: Kurzfristige Aktienbegweungen können unter realen Marktbedingungen mit den hier verwendeten Methoden nicht zuverlässig vorhergesagt werden.
+
+Technisch betrachtet weist die Regressionsauswertung ein unmissverständliches Resultat auf: Alle Machine-Learning-Modelle weisen im Testabschnitt ein negatives R² auf, was bedeutet, dass sie schlechter abschneiden als die triviale Null-Prognose, die eine Rendite von null voraussagt. Dieses Resultat stellt keinen Einzelfall dar, sondern einen konsistenten Befund über alle vier untersuchten ETFs (SPY, QQQ, DIA, XLE) und über alle Prognosehorizonte. Auch in Bezug auf die Richtungsgenauigkeit liegen die ML-Modelle konstant unter 50 Prozent und erzielen damit schlechtere Ergebnisse als zufälliges Raten. Nur ARIMA erreicht bei bestimmten Ticker-Horizont-Kombinationen Werte, die leicht über 50\% liegen, und das ohne den Einsatz von Feature-Engineering. Dies deutet darauf hin, dass die hochdimensionale Feature-Matrix der ML-Modelle mehr Rauschen als Signal in die Prognose einbringt. Auch die Ergebnisse der Klassifikation untermauern diese Darstellung: Der Basisklassifikator abstiniert in der überwiegenden Zahl der Fälle nahezu vollständig, da er nur wenige Beobachtungen mit ausreichend hoher Konfidenz identifiziert.Der Meta-Klassifikator, der auf den Vorhersagen von Ridge und Random Forest basiert, verschlechtert sich im Vergleich zum einfacheren Basismodell, da er fehlerhafte Signale als zusätzlichen Input erhält und dadurch das Rauschen in der Eingabe erhöht, anstatt es zu reduzieren. Die naive Mehrheitsklassen-Baseline ist das einzige Modell, das keinen Konsistenztest besteht.
+
+Drei zentrale Erklärungsrahmen für diese Befunde werden durch die theoretische Analyse bereitgestellt. In ihrer schwachen Form beschreibt die Effizienzmarkthypothese, dass in liquiden, breit gehandelten Märkten vergangene Preise bereits vollständig berücksichtigt wurden und somit keine Grundlage für überdurchschnittliche Prognosen bieten — genau das ist die Bedingung für die hier untersuchten ETFs. Zweitens wird deutlich, dass es sich bei der theoretischen Beschäftigung mit Overfitting und der Illusion von Vorhersagbarkeit um ein Problem handelt, das zu leicht aussehenden Mustern in historischen Daten führt, die bei einer echten Out-of-Sample-Prüfung nicht bestätigt werden können. Das ungünstige Verhältnis von generierten Features zu Trainingsbeobachtungen (über 70 generierte Features bei nur rund 1.400 Trainingsbeobachtungen) zwingt beide Regressionsmodelle zu einer Überanpassung an die Trainingsdaten, die nicht generalisierbar ist. Als Drittes wird durch die Debatte über Nicht-Stationarität, strukturelle Brüche und externe Schocks deutlich, weshalb selbst ein perfekt kalibriertes Modell an seine Grenzen stößt: Im Lauf der Zeit wandeln sich die Märkte und ihre statistische Struktur. Unvorhersehbare Ereignisse, wie etwa geopolitische Krisen oder makroökonomische Schocks, überdecken dabei jedes stabile Muster.
+
+Abschließend lässt sich festhalten, dass das konsistente Nullergebnis dieser Arbeit kein Enttäuschung, sondern ein sinnvoller wissenschaftlicher Beitrag ist. Es liefert empirische Evidenz, dass die untersuchte Kombination von öffentlich verfügbaren Preisdaten, technischen Indikatoren und klassischen ML-Modellen nicht über die in die Testmodelle integrierten Muster hinausgeht, um in den auf KI basierenden Ergebnisse nicht erkennbare Muster zu finden -Markttrends und dergleichen. Dies hilft, die realen Grenzen der LFMA-Daten bei Aktienprognosen realistisch einzuschätzen.
 
 \newpage
 \singlespacing %Zeilenabstand: 1,0
 \pagenumbering{roman}
 \newgeometry{top=2cm,bottom=2cm,left=2cm,right=2cm}
-\newpage
-\printbibliography[heading=bibintoc]
 \appendix
 \newpage
-\section*{Abbildungsverzeichnis}
-\addcontentsline{toc}{section}{Abbildungsverzeichnis}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{images/complexity.png}
-    \caption{Tatsächliches Diagramm zur Modellbewertung \cite[S.~220]{tesl}}
-    \label{fig:complexity}
-\end{figure}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{images/rolling.png}
-    \caption{Diagramm zur Visualisierung von Rolling-Features}
-    \label{fig:rolling}
-\end{figure}
+\printbibliography[heading=bibintoc]
+\newpage
+\addcontentsline{toc}{section}{\listfigurename}
+\listoffigures
+\newpage
+\addcontentsline{toc}{section}{\listtablename}
+\listoftables
 \newpage
 \input{hilfsmittel}
-
-
+%\newpage
+%\section*{Quellcode}
+%\lstinputlisting[language=Python]{castmark/__init__.py}
+%\lstinputlisting[language=Python]{castmark/__main__.py}
+%\lstinputlisting[language=Python]{castmark/artifacts.py}
+%\lstinputlisting[language=Python]{castmark/cli.py}
+%\lstinputlisting[language=Python]{castmark/config.py}
+%\lstinputlisting[language=Python]{castmark/data.py}
+%\lstinputlisting[language=Python]{castmark/evaluation.py}
+%\lstinputlisting[language=Python]{castmark/features.py}
+%\lstinputlisting[language=Python]{castmark/interactive.py}
+%\lstinputlisting[language=Python]{castmark/logging_utils.py}
+%\lstinputlisting[language=Python]{castmark/models.py}
+%\lstinputlisting[language=Python]{castmark/pipeline.py}
 \end{document}

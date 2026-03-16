@@ -1,0 +1,21 @@
+\begin{table}[ht]
+\centering
+\caption{Klassifikationsmetriken aus dem Testset ($h = 5$ Handelstage)}
+\label{tab:classification_h5}
+
+\begin{tabularx}{\linewidth}{llRRRRR}
+\toprule
+\textbf{Ticker} & \textbf{Modell} & \textbf{Accuracy} & \textbf{F1} & \textbf{ROC-AUC} & \textbf{Coverage} & \textbf{Uplift} \\
+\midrule
+  \multirow{3}{*}{\textbf{DIA}} & Base Logistic & 0.620 & 0.759 & \textcolor{bestgreen}{\textbf{0.544}} & \textcolor{bestgreen}{\textbf{0.178}} & $+$0.033 \\
+   & Meta Logistic & \textcolor{bestgreen}{\textbf{0.818}} & \textcolor{bestgreen}{\textbf{0.900}} & 0.541 & 0.078 & \textcolor{bestgreen}{\textbf{$+$0.231}} \\
+   & Baseline-Rate$^\ddagger$ & 0.587 & 0.740 & --- & 1.000 & --- \\
+\bottomrule
+\end{tabularx}
+
+\smallskip
+{\footnotesize
+$^\ddagger$\,Baseline-Rate: häufigste Klasse wird stets vorhergesagt. \quad
+Uplift\,$=$\,Accuracy\,$-$\,Baseline-Rate. \quad
+\textcolor{bestgreen}{\textbf{Grün}}: bestes Modell je Metrik.}
+\end{table}

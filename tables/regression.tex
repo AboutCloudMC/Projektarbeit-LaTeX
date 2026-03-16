@@ -1,0 +1,21 @@
+\begin{table}[ht]
+\centering
+\caption{Regressionsmetriken aus dem Testset ($h = 5$ Handelstage)}
+\label{tab:regression_h5}
+
+\begin{tabularx}{\linewidth}{llRRRRR}
+\toprule
+\textbf{Ticker} & \textbf{Modell} & \textbf{RMSE} & \textbf{MAE} & \textbf{sMAPE\,(\%)}$^\dagger$ & \textbf{$R^2$} & \textbf{Dir.\ Acc.} \\
+\midrule
+  \multirow{4}{*}{\textbf{DIA}} & Ridge & 1.646 & 1.424 & 75.9 & $-$1.354 & 0.423 \\
+   & Random Forest & 1.603 & 1.400 & \textcolor{bestgreen}{\textbf{75.9}} & $-$1.231 & 0.417 \\
+   & SARIMA & \textcolor{bestgreen}{\textbf{1.075}} & \textcolor{bestgreen}{\textbf{0.811}} & 99.4 & \textcolor{bestgreen}{\textbf{$-$0.004}} & \textcolor{bestgreen}{\textbf{0.540}} \\
+   & Zero-Return$^\ddagger$ & 1.076 & 0.811 & 100.0 & $-$0.005 & --- \\
+\bottomrule
+\end{tabularx}
+
+\smallskip
+{\footnotesize
+$^\dagger$\,Skaliert mit Faktor $0{,}5$ (0--100\,\%) \quad $^\ddagger$\,Zero-Return: naive Baseline (Renditeprognose\,$= 0$). \quad
+\textcolor{bestgreen}{\textbf{Grün}}: bestes Modell je Metrik.}
+\end{table}
