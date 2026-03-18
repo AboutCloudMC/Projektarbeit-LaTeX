@@ -5,28 +5,26 @@
 \subsubsection{Herkunft und Umfang der Kursdaten}
 
 \paragraph{Herkunft}
-Die historischen Kursdaten der untersuchten Aktienticker werden über die Finanzplattform \textit{Yahoo Finance} \cite{yahoo} bezogen. Der Zugriff erfolgt mittels des Python-Pakets \textit{yfinance} \cite{yfinance}, das eine programmgesteuerte Abfrage von Open-High-Low-Close-Volume-(OHLCV)-Daten ermöglicht. \cite[S.~351]{mckinney_python_2018}, \cite{ismail_paper}
+Die historischen Kursdaten der untersuchten Aktienticker werden über die Finanzplattform \textit{Yahoo Finance} \cite{yahoo} bezogen. Der Zugriff erfolgt über das Python-Paket \textit{yfinance} \cite{yfinance}, das eine programmgesteuerte Abfrage von Open-High-Low-Close-Volume-(OHLCV)-Daten ermöglicht. \cite[S.~351]{mckinney_python_2018}, \cite{ismail_paper}
 
-Um den Datensatz an verschiedene Untersuchungsszenarien anpassbar zu machen, wurde die Datenbeschaffung vollständig konfigurierbar gestaltet.
-Dies schließt unter anderem die Liste der betrachteten Ticker, der Zeitraum der Daten, sowie das Zeitintervall der Kurse, z. B. tägliche oder wöchentliche Daten, ein.
+Um den Datensatz an verschiedene Untersuchungsszenarien anzupassen, wurde die Datenbeschaffung vollständig konfigurierbar gestaltet. Dies schließt unter anderem die Liste der betrachteten Ticker, den Zeitraum der Daten, sowie das Zeitintervall der Kurse, z. B. tägliche oder wöchentliche Daten, ein.
 
-Für diese Untersuchung werden Zeitreihen mit einer Länge von ca. acht Jahren verwendet, damit genügend Beobachtungspunkte vorliegen um robuste Aussagen über die Modellperformance unter verschiedenen Marktphasen treffen zu können.
+Für diese Untersuchung wurden Zeitreihen mit einer Länge von ca. acht Jahren verwendet, damit genügend Beobachtungspunkte vorliegen, um belastbare Aussagen über die Modellperformance unter verschiedenen Marktphasen treffen zu können.
 
 \paragraph{Cache-Mechanismus}
-Nach der programmgesteuerten Abfrage durch \textit{yfinance}, werden die OHLCV-Daten in einem lokalen Cache gespeichert. Dies verkürzt die benötigte Zeit für weiderholte Durchläufe, da die Daten nicht immer wieder heruntergeladen werden müssen.
+Nach der programmgesteuerten Abfrage durch \textit{yfinance}, werden die OHLCV-Daten in einem lokalen Cache gespeichert. Dies verkürzt die benötigte Zeit für wiederholte Durchläufe, da die Daten nicht immer wieder heruntergeladen werden müssen.
 
 Die gespeicherten Daten sind ausschließlich rohe OHLCV-Daten. Jegliche Datenverarbeitung erfolgt bei jedem Durchlauf erneut, wodurch sichergestellt wird, dass Änderungen an der Konfiguration bei einem neuen Durchlauf berücksichtigt werden.
 
 \subsubsection{Feature-Engineering} \label{features}
-Zur Datenverarbeitung gehört auch das Feature-Engineering, welches basierend auf den rohen Daten zusätliche Merkmale generiert. Dieser Schritt ist notwendig, da OHLCV-Daten nur begrenzt direkt modellierbare Strukturen beinhalten.
+Zur Datenverarbeitung gehört auch das Feature-Engineering, welches basierend auf den rohen Daten zusätzliche Merkmale generiert. Dieser Schritt ist notwendig, da OHLCV-Daten nur begrenzt direkt modellierbare Strukturen beinhalten.
 
-Ein Zentrales Problem besteht dabei in der Nicht-Stationärität von Aktienpreisen. Diese folgen typischerweise keinem stationären Prozess, sondern lassen sich näherungsweise als Random Walk mit Drift modellieren:
+Ein zentrales Problem besteht dabei in der Nicht-Stationärität von Aktienpreisen. Diese folgen typischerweise keinem stationären Prozess, sondern lassen sich näherungsweise als Random Walk mit Drift modellieren:
 \cite[S.~65]{tsay_analysis_2005}:
 \begin{equation}
     p_t = \mu + p_{t-1} + \varepsilon_t
 \end{equation}
-Dabei bezeichnet $p_t$ den logarithmischen Preis zum Zeitpunkt $t$, $\mu$ den konstanten Drift und $\varepsilon_t$ das weiße Rauschen. Da sich der Mittelwert solcher Prozesse über die Zeit verändert, 
-würden klassische Machine-Learning-Modelle zeitlich instabile Strukturen erlernen.
+Dabei bezeichnet $p_t$ den logarithmischen Preis zum Zeitpunkt $t$, $\mu$ den konstanten Drift und $\varepsilon_t$ das weiße Rauschen. Da sich der Mittelwert solcher Prozesse über die Zeit verändert,  würden klassische Machine-Learning-Modelle zeitlich instabile Strukturen erlernen.
 \cite[S.~64]{tsay_analysis_2005}
 
 \paragraph{Logarithmische Renditen}
@@ -45,7 +43,7 @@ Da diese multiplikative Struktur statistisch schwer handhabbar ist, kann sie dur
 Daraus ergibt sich, dass die einfache Rendite $R_t$ die prozentuale Veränderung zweier einfacher Preise $P_t$ ist, während die logarithmische Rendite $r_t$ die Differenz zweier logarithmischer Preise $p_t$ ist.
 
 \paragraph{Autoregression} \label{autoregression}
-Lag Features, auch verzögerte Variablen (lagged variables) genannt, repräsentieren die Vergangenheitswerte einer Zeitreihe und dienen dazu, serielle Abhängigkeiten wie Autokorrelation in einem Modell abzubilden. Ein Lag der Ordnung $k$ entspricht dem Wert einer Variable zum Zeitpunkt $t-k$. So entspricht etwa $r_{t-1}$ dem Lag 1. Ordnung der Rendite $r_t$.
+Lag-Features, auch verzögerte Variablen (lagged variables) genannt, repräsentieren die Vergangenheitswerte einer Zeitreihe und dienen dazu, serielle Abhängigkeiten wie Autokorrelation in einem Modell abzubilden. Ein Lag der Ordnung $k$ entspricht dem Wert einer Variable zum Zeitpunkt $t-k$. So entspricht etwa $r_{t-1}$ dem Lag 1. Ordnung der Rendite $r_t$.
 
 Lag-Features bilden außerdem das Grundprinzip klassischer autoregressiver Modelle $AR(p)$. Dabei bezeichnet $p$ nicht den logarithmischen Preis, sondern die Ordnung des Modells. Für die Rendite $r_t$ ergibt sich ein autoregressives Modell der Ordnung $p$:
 \begin{equation}
@@ -56,7 +54,7 @@ wobei $\phi_0$ eine Konstante darstellt, $\phi_1,\dots,\phi_p$ die Regressionsko
 
 In der Finanzmarktanalyse wird diese serielle Abhängigkeit oft als Momentum-Effekt interpretiert. Ein $AR$-Modell mit positiven Koeffizienten $(\phi>0)$ bildet hierbei die statistische Grundlage für Momentum, da es mathematisch beschreibt, dass auf positive Renditen der Vergangenheit mit einer gewissen Wahrscheinlichkeit positive Renditen in der Gegenwart folgen. Durch die Einbeziehung mehrerer Lags kann das Modell somit komplexere Momentum-Muster über unterschiedliche Zeithorizonte hinweg extrahieren.
 
-Allerdings stellt die maximale Lag Ordnung $p$, oder auch \texttt{max\_lag} im Programm, eine zentrale Modellierungsentscheidung dar. Während eine größere Anzahl von Lags potenziell zusätzliche Informationen liefert, erhöhen sie zugleich die Dimensionalität des Feature-Raums und damit das Risiko von \textit{Overfitting}. Abbildung~\ref{fig:complexity} zeigt, dass ein Overfit genau an dem Punkt entsteht, an dem der Prediction Error mit zunehmender Modellkomplexität wieder ansteigt. \cite[S.~220f.]{tesl}
+Allerdings stellt die maximale Lag-Ordnung $p$, oder auch \texttt{max\_lag} im Programm, eine zentrale Modellierungsentscheidung dar. Während eine größere Anzahl von Lags potenziell zusätzliche Informationen liefert, erhöht sie zugleich die Dimensionalität des Feature-Raums. Dies erhöht das Risiko von \textit{Overfitting}, bei dem ein Modell neben echten Zusammenhängen auch zufälliges Rauschen erlernt. Dadurch lernt das Modell Muster in den historischen Daten, welche im Test-Abschnitt nicht anwendbar sind. \cite[S.~220]{tesl} Abbildung~\ref{fig:complexity} zeigt, dass ein Overfit genau an dem Punkt entsteht, an dem der Prediction Error mit zunehmender Modellkomplexität wieder ansteigt. \cite[S.~220f.]{tesl}
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{images/complexity.png}
@@ -65,7 +63,7 @@ Allerdings stellt die maximale Lag Ordnung $p$, oder auch \texttt{max\_lag} im P
 \end{figure}
 
 \paragraph{Rolling Fenster}
-Zur Extraktion lokaler Trend- und Regimeinformationen werden sogenannte Rolling Features verwendet. Dabei werden statistische Daten über ein gleitendes Zeitfenster $w$ berechnet, welches sich dann über die Zeitreihe verschiebt. Ziel dieser Transformation ist es, kurzfristige Schwankungen zu glätten und gleichzeitig lokale Strukturen für das Modell sichtbar zu machen. \cite[S.~354f.]{mckinney_python_2018}
+Zur Extraktion lokaler Trend- und Regimeinformationen werden sogenannte Rolling Features verwendet. Unter einem Marktregime versteht man dabei einen Zeitabschnitt, in dem sich die statistischen Eigenschaften der Zeitreihe, wie z.B. Volatilität oder Trendrichtung, ähnlich verhalten und sich klar von anderen Phasen unterscheiden. Bei den Rolling Features werden statistische Daten über ein gleitendes Zeitfenster $w$ berechnet, welches sich dann über die Zeitreihe verschiebt. Ziel dieser Transformation ist es, kurzfristige Schwankungen zu glätten und gleichzeitig lokale Strukturen für das Modell sichtbar zu machen. \cite[S.~354f.]{mckinney_python_2018}
 
 Im Programm werden für jedes definierte Fenster $w \in \{5,10,20\}$ folgende Merkmale generiert:
 \begin{itemize}
@@ -84,9 +82,9 @@ Die Effekte dieser Features werden in Abb.~\ref{fig:rolling} visualisiert. Der E
 Die Rolling-Features werden erzeugt mithilfe des \textit{rolling}-Operators der Python Bibliothek \textit{pandas} \cite{pandas}, sowie Aggregationsfunktionen wie \texttt{mean()}, \texttt{std()}, \texttt{min()} und \texttt{max()}. Die Wahl der Fenstergröße $w$ unterliegt einem klassischen Bias-Varianz-Tradeoff, denn während kleinere Fenster schneller reagieren, sind sie auch anfälliger für Rauschen.
 
 \paragraph{Volatilitäts- und Marktaktivitätsmetriken}
-Auch Volatilität und Marktvolumen fließen als Features in die Modelle mit ein, um verschiedene Marktregime zu quantifizieren. Volatilität beschreibt den Schwankungsbereich von Kursen und damit auch das Risikoniveau, während das Marktvolumen, das in den OHLCV enthalten ist, die allgemeine Marktaktivität darstellt. \cite[S.~22]{wilder_new_1978}
+Auch Volatilität und Marktvolumen fließen als Features in die Modelle ein, um verschiedene Marktregime zu quantifizieren. Volatilität beschreibt den Schwankungsbereich von Kursen und damit auch das Risikoniveau, während das Marktvolumen, das in den OHLCV enthalten ist, die allgemeine Marktaktivität darstellt. \cite[S.~22]{wilder_new_1978}
 
-Die Volatilitätsmaße, die im Programm eingesetzt werden, basieren entweder auf bereits vorhandenen Rolling-Features wie der Standardabweichung \texttt{rolling\_std\_w} oder auf der vpm J.~Welles Wilder entwickelten Average True Range (ATR). Zunächst wird für jeden Handelstag die sogenannte True Range (TR) definiert:
+Die Volatilitätsmaße, die im Programm eingesetzt werden, basieren entweder auf bereits vorhandenen Rolling-Features wie der Standardabweichung \texttt{rolling\_std\_w} oder auf der von J.~Welles Wilder entwickelten Average True Range (ATR). Zunächst wird für jeden Handelstag die sogenannte True Range (TR) definiert:
 \begin{equation}
   \text{TR}_t = \max \left\{
   \begin{aligned}
@@ -106,7 +104,7 @@ $C_{t-1}$ der Schlusskurs des Vortages ist. \cite[S.~21]{wilder_new_1978} Durch 
 \subsubsection{Split-Strategie sowie Skalierungs- und Zielgenerierung}
 
 \paragraph{Split-Strategie}
-Bevor diese Features in die Modelle einfließen können, muss der Datensatz so aufgeteilt werden, dass eine faire Evaluation der Generalisierungsfähigkeit der Modelle möglich ist. Dabei wird das Datenset in Trainings-, Validierungs- und Testabschnitte aufgeteilt. Die Split-Strategie soll außerdem die Enstehung von Lookahead-Bias und \textit{Overfitting} vermeiden. \cite[S.~222]{tesl}
+Bevor diese Features in die Modelle einfließen können, muss der Datensatz so aufgeteilt werden, dass eine Evaluation der Generalisierungsfähigkeit der Modelle möglich ist. Dabei wird das Datenset in Trainings-, Validierungs- und Testabschnitte aufgeteilt. Die Split-Strategie soll außerdem die Enstehung von \textit{Lookahead-Bias} und \textit{Overfitting} vermeiden. Ein Lookahead-Bias entsteht durch sogenanntes \textit{Data Leakage}, also wenn Informationen aus einem zeitlich späteren Abschnitt in den Trainingsprozess einfließen, die in der Realität zum jeweiligen Zeitpunkt noch nicht vorgelegen hätten. \cite[S.~222]{tesl}
 
 \paragraph{Skalierung}
 Für bestimmte Modelle, insbesondere die Ridge Regression, müssen die Features standardisiert werden, da lineare Algorithmen sehr empfindlich auf unterschiedliche Skalierungen bei den Inputs reagieren. Baumbasierte Modelle wie der Random Forest sind hingegen skaleninvariant, profitieren aber von einer einheitlichen Datenvorverarbeitung. Die Features werden so transformiert, dass sie einen Mittelwert von Null und eine Einheitsvarianz, also eine Standardabweichung von 1, haben. \cite[S.~604]{tesl} Dabei ist es entscheidend, dass diese Transformationen ausschließlich auf Basis des Trainingsabschnitts berechnet werden, um sicherzustellen, dass keine Informationen aus der Zukunft, also Daten aus den Validierungs- und Testabschnitten, in das Training einfließen. \cite[S.~389]{mckinney_python_2018}
@@ -114,11 +112,11 @@ Für bestimmte Modelle, insbesondere die Ridge Regression, müssen die Features 
 \paragraph{Zielgenerierung}
 Für jeden Horizont werden genau zwei Ziele generiert: Das Regressionsziel und das Klassifikationsziel.
 
-Während das Regressionsziel einen numerischen Wert darstellt, konkret eine volatilitätsskalierte zukünfitge Log-Rendite, zielt das lassifikationsziel darauf ab, eine binäre Dummy-Variable zu bestimmen, die angibt ob der Kurs im jeweiligen Horizont steigen oder sinken wird. \cite[S.~10]{tesl}
+Während das Regressionsziel einen numerischen Wert darstellt, konkret eine volatilitätsskalierte zukünfitge Log-Rendite, zielt das Klassifikationsziel darauf ab, eine binäre Dummy-Variable zu bestimmen, die angibt ob der Kurs im jeweiligen Horizont steigen oder sinken wird. \cite[S.~10]{tesl}
 
 \subsection{Modellierung}
 \subsubsection{Regressionsmodelle} \label{regression}
-Mit den aufbereiteten, aufgeteilten und skalierten Daten können nun die verschiedenen Modellarchitekturen trainiert werden. Darunter auch die Regression, welche Beim Maschinellen Lernen eine Variante des überwachten Lernens (Supervised Learning) beschreibt. Das Ziel der Regression darin liegt, eine Ausgangs- oder abhängige Variable $Y$ vorherzusagen. \cite[S.~10]{tesl}
+Mit den aufbereiteten, aufgeteilten und skalierten Daten können nun die verschiedenen Modellarchitekturen trainiert werden. Darunter auch die Regression, welche beim maschinellen Lernen eine Variante des überwachten Lernens (Supervised Learning) beschreibt. Das Ziel der Regression liegt darin, eine Ausgangs- oder abhängige Variable $Y$ vorherzusagen. \cite[S.~10]{tesl}
 
 Lineare Regression (LR) dient als Ausgangspunkt für den Vergleich weiterer Regressionsmodelle. Sie basiert auf der Annahme eines linearen Zusammenhangs zwischen der Zielvariable und den Eingangsvariablen. Das Modell beschreibt diese Zielvariable als gewichtete Summe der Features:
 % Formel 3.1 + 2.1
@@ -130,20 +128,21 @@ Dabei bezeichnet $\hat{\beta}_j$ den geschätzten Einfluss des jeweiligen Featur
 \begin{equation}
   Y = f(X) + \varepsilon
 \end{equation}
-wobei $\varepsilon$ den zufälligen Fehlerterm repräsentiert. \cite[S.~28]{tesl} Durch diesen Fehlerterm entsteht eine Differenz zwischen beobachtetem $y_i$ und vorhergesagtem $\hat{y}_i$ Wert, welche als Residuum $e_i=y_i-\hat{y}_i$ bezeichnet wird. Aus diesem Residuum wird in der Statistik die Fehlerfunktion Residual Sum of Squares (RSS) berechnet,
+wobei $\varepsilon$ den zufälligen Fehlerterm repräsentiert. \cite[S.~28]{tesl} Durch diesen Fehlerterm entsteht eine Differenz zwischen beobachtetem $y_i$ und vorhergesagtem $\hat{y}_i$ Wert, welche als Residuum $e_i=y_i-\hat{y}_i$ bezeichnet wird. Aus diesem Residuum wird in der Statistik die Fehlerfunktion Residual Sum of Squares (RSS) berechnet:
 \begin{equation} \label{rss}
   \text{RSS} = \sum_{i=1}^{N} (y_i - \hat{y}_i)^2
 \end{equation}
-da durch das Quadrieren die Fehler immer positiv sind und größere Fehler stärker gewichtet werden. Dadurch misst die RSS das \glqq Lack of Fit\grqq{}, also wie schlecht das Modell zu den Daten passt. \cite[S.~12]{tesl}
+Durch das Quadrieren werden die Fehler immer positiv und größere Fehler werden stärker gewichtet. Dadurch misst die RSS das \glqq Lack of Fit\grqq{}, also wie schlecht das Modell zu den Daten passt. \cite[S.~12]{tesl}
 
-Durch ihre mathematische Einfachheit bringt sie auch strukturelle Nachteile mit sich. Lineare Regression wird bei einer hohen Dimensionalität instabil, also wenn die Anzahl der generierten Features $p$ größer ist, als die Anzahl der Datenpunkte $N$ ($p>N$). Außerdem neigt LR bei solchen hochdimensionalen Szenarien zu einer hohen Varianz. Das bedeutet, dass schon kleine Unterschiede in den Trainingsdaten zu erheblichen Änderungen der Koeffizienten des Modells führen, was zu Overfitting führt. \cite[S.~47,649]{tesl}
+Durch ihre mathematische Einfachheit bringt sie auch strukturelle Nachteile mit sich. Lineare Regression wird bei einer hohen Dimensionalität instabil, wenn also die Anzahl der generierten Features $p$ größer ist, als die Anzahl der Datenpunkte $N$ ($p>N$). Außerdem neigt LR bei solchen hochdimensionalen Szenarien zu einer hohen Varianz. Das bedeutet, dass schon kleine Unterschiede in den Trainingsdaten zu erheblichen Änderungen der Koeffizienten des Modells und damit Overfitting führen. \cite[S.~47,649]{tesl}
 
 \paragraph{Ridge Regression} \label{ridge}
 Die Ridge Regression (RR) ist eine Erweiterung der klassischen linearen Regression, welche in hochdimensionalen Szenarien ($p \gg N$) deutlich stabiler ist. Dies wird umgesetzt durch das Hinzufügen eines Strafterms (Penalty Term) zu der Fehlerfunktion RSS aus der Formel \ref{rss}. In der Statistik wird dieses erweiterte Kriterium als Penalized Residual Sum of Squares (PRSS) bezeichnet. Die allgemeine Struktur lautet:
 %Formel 2.38
 \begin{equation}
   \text{PRSS}(f; \lambda) = \text{RSS}(f) + \lambda J(f)
-\end{equation} \cite[S.~34]{tesl} wobei $J(f)$ die mathematische Bestrafung der Modellkomplexität und $\lambda$ den Regularisierungsparameter, welcher die Stärke der Bestrafung bestimmt, darstellt. Bei der Ridge Regression wird ein sogenannter L2 Penalty genutzt, welcher proportional zum Quadrat der Größe der Koeffizienten ist. Der Schätzer $\hat{\beta}_{\text{ridge}}$ ergibt sich somit durch die Minimierung der Funktion:
+\end{equation} \cite[S.~34]{tesl} wobei $J(f)$ die mathematische Bestrafung der Modellkomplexität und $\lambda$ den Regularisierungsparameter, welcher die Stärke der Bestrafung bestimmt, darstellen. Bei der Ridge Regression wird als Strafterm $J(f)$ konkret der sogenannte \textit{L2-Penalty} verwendet, welche die Summe der quadrierten Koeffizienten der Features darstellt. Dieser bestraft große Koeffizientenwerte, wodurch das Modell gezwungen wird, den Einfluss einzelner Features zu 
+begrenzen. Die optimalen Koeffizienten $\hat{\beta}_{\text{ridge}}$ der Features des Modells ergeben sich durch die Minimierung der folgenden Funktion:
 %Formel 3.41
 \begin{equation} 
   \hat{\beta}_{\text{ridge}} = \underset{\beta}{\text{argmin}} \left\{\sum_{i=1}^{N} \left( y_i - \beta_0 - \sum_{j=1}^{p} x_{ij}\beta_j \right)^2 + \lambda \sum_{j=1}^{p} \beta_j^2 \right\}
@@ -202,7 +201,7 @@ mathematisch wie folgt darstellen: \cite[Formel 9.2]{fpp}
 \end{equation}
 Dabei verschiebt der Backshift-Operator $B$ die Zeitreihe um einen Schritt in die Vergangenheit, d.h. $B y_t = y_{t-1}$. Der linke Klammerausdruck 
 $(1 - \phi_1 B - \cdots - \phi_p B^p)$ beschreibt die AR-Komponente mit den 
-Koeffizienten $\phi_i$, während $(1-B)^d$ die $d$-fache Differenzierung der Zeitreihe darstellt. Auf der rechten Seite enthält $(1 + \theta_1 B + \cdots + \theta_q B^q)$ die MA-Komponente mit den Koeffizienten $\theta_j$, und $\varepsilon_t$ ist ein Weißrauschprozess. Ein besonderes Merkmal von ARIMA-Prozessen ist ihr starkes Gedächtnis, denn sogenannte Schocks wirken sich dauerhaft auf den Prozess aus, da sie nicht ausgedämpft werden. Die optimale Modellordnung $(p, d, q)$ wird im Programm per Grid-Search über das niedrigste Akaike-Informationskriterium (AIC) bestimmt. \cite[Kapitel 9.5]{fpp}
+Koeffizienten $\phi_i$, während $(1-B)^d$ die $d$-fache Differenzierung der Zeitreihe darstellt. Auf der rechten Seite enthält $(1 + \theta_1 B + \cdots + \theta_q B^q)$ die MA-Komponente mit den Koeffizienten $\theta_1 + \cdots + \theta_q$ und den Weißrauschprozess $\varepsilon_t$. Ein besonderes Merkmal von ARIMA-Prozessen ist ihr starkes Gedächtnis, denn sogenannte Schocks wirken sich dauerhaft auf den Prozess aus, da sie nicht ausgedämpft werden. Die optimale Modellordnung $(p, d, q)$ wird im Programm per Grid-Search über das niedrigste Akaike-Informationskriterium (AIC) bestimmt. \cite[Kapitel 9.5,9.6]{fpp}
 
 \paragraph{Saisonalität}
 Das saisonale Erweiterungsmodell $\mathrm{SARIMA}(p,d,q)(P,D,Q)_m$ ergänzt das klassische ARIMA um eine saisonale Komponente mit der Periode $m$, wobei $m$ die Anzahl der Beobachtungen pro Saison angibt. Großbuchstaben bezeichnen dabei die saisonalen Parameter, Kleinbuchstaben die nicht-saisonalen.
@@ -223,7 +222,7 @@ Während ARIMA auf linearen Abhängigkeiten basiert, erlauben Deep-Learning-Mode
 \end{figure}
 Die Nicht-Linearität wird durch eine Aktivierungsfunktion erzeugt. Häufig wird dafür die Sigmoid-Funktion (Abschnitt \ref{logistical_regression}) genutzt, um die Ausgabe auf das Intervall $[0;1]$ zu begrenzen. \cite[S.~392f.]{tesl}
 
-\paragraph{Long Short-Term Memory Modelle} Während einfache Feed-Forward-Netze Schwierigkeiten haben, sequentielle Abhängigkeiten in Finanzzeitreihen abzubilden, können rekurrente Architekturen wie Long Short-Term Memory (LSTM) Netze diese zeitlichen Zusammenhänge lernen. Ihre Besonderheit liegt in der Fähigkeit, auch langfristige Abhängigkeiten in den Daten zu identifizieren. Kayit und Ismail belegen zudem, dass LSTMs tägliche Aktienkurse präziser vorhersagen können als traditionelle Machine-Learning-Modelle, was ihre Eignung für Finanzzeitreihen unterstreicht \cite{ismail_paper}.
+\paragraph{Long Short-Term Memory Modelle} Während einfache Feed-Forward-Netze Schwierigkeiten haben, sequentielle Abhängigkeiten in Finanzzeitreihen abzubilden, können rekurrente Architekturen wie Long Short-Term Memory (LSTM) Netze diese zeitlichen Zusammenhänge lernen. Ihre Besonderheit liegt in der Fähigkeit, auch langfristige Abhängigkeiten in den Daten zu identifizieren. Kayit und Ismail belegen zudem, dass LSTMs tägliche Aktienkurse präziser vorhersagen können als traditionelle Machine-Learning-Modelle, was ihre Eignung für Finanzzeitreihen unterstreicht \cite{ismail_paper}. \cite{hochreiter_long_1997}
 
 \subsection{Evaluierung}
 
@@ -248,8 +247,7 @@ Für die Klassifikation werden hingegen folgende Maße verwendet:
     \item \texttt{Coverage}, welche den Anteil der Beobachtungen misst, für die das Modell überhaupt eine binäre Vorhersage trifft.
 \end{itemize}
 
-Als Vergleichsbaselines dienen zwei naive Referenzmodelle. Einmal \texttt{zero\_return}, welches stets eine Rendite 
-von null prognostiziert, sowie \texttt{baseline\_rate}, welches stets die Trainings-Basisrate als Klassenwahrscheinlichkeit ausgibt.
+Als Vergleichsbaselines dienen zwei naive Referenzmodelle. Einmal \texttt{zero\_return}, welches stets eine Rendite von null prognostiziert, sowie \texttt{baseline\_rate}, welches stets die Trainings-Basisrate als Klassenwahrscheinlichkeit ausgibt.
 
 \subsubsection{Regressionsergebnisse}
 
@@ -257,15 +255,15 @@ von null prognostiziert, sowie \texttt{baseline\_rate}, welches stets die Traini
 
 \paragraph{Vergleich der Modelle gegen die Null-Baseline}
 
-Alle Modelle erzielen auf dem Testabschnitt ein negatives $R^2$ und sind damit schlechter als eine triviale Null-Prognose, die schlicht eine Rendite von null vorhersagt. Das gilt konsistent über alle getesteten Prognosehorizonte hinweg. Die gelernten Feature-Muster übertragen sich offenbar nicht auf neue Daten, was darauf hindeutet, dass die Modelle im Training Zufallsmuster aufgenommen haben,
-die im Testabschnitt nicht mehr vorhanden sind.
+Alle Modelle erzielen auf dem Testabschnitt ein negatives $R^2$ und sind damit schlechter als eine triviale Null-Prognose, die schlicht eine Rendite von null vorhersagt. Das gilt konsistent über alle getesteten Prognosehorizonte hinweg. Die gelernten Feature-Muster übertragen sich offenbar nicht auf neue Daten, was darauf hindeutet, dass die Modelle im Training Zufallsmuster aufgenommen haben, die im Testabschnitt nicht mehr vorhanden sind.
 
 \paragraph{Richtungsgenauigkeit}
-Etwas besser sieht es bei der Richtungsgenauigkeit aus, also der Frage ob das Modell wenigstens die Bewegungsrichtung korrekt vorhersagt. Die ML-Modelle liegen hier durchgehend unter 50\,\%, schneiden also schlechter ab als zufälliges Raten. SARIMA hingegen erreicht bei einzelnen Ticker-Horizont-Kombinationen, wie z.B. $\mathrm{DIA}$ bei $h=5$, eine Richtungsgenauigkeit von $0{,}537$ und damit über 50\,\%, obwohl es keinerlei Feature-Engineering verwendet und nur auf der Preiszeitreihe selbst arbeitet. Das legt nahe, dass die vielen generierten Features eher Rauschen als nutzbare Information in die Prognose einbringen.
+Etwas besser sieht es bei der Richtungsgenauigkeit aus, also der Frage ob das Modell wenigstens die Bewegungsrichtung korrekt vorhersagt. Die ML-Modelle liegen hier durchgehend unter 50\,\%, schneiden also schlechter ab als zufälliges Raten. SARIMA hingegen erreicht bei einzelnen Ticker-Horizont-Kombinationen, wie z.B. $\mathrm{DIA}$ bei $h=5$, eine Richtungsgenauigkeit von $0{,}540$ und damit über 50\,\%, obwohl es keinerlei Feature-Engineering verwendet und nur auf der Preiszeitreihe selbst arbeitet. Das legt nahe, dass die vielen generierten Features eher Rauschen als nutzbare Information in die Prognose einbringen.
 
-Wie in Abbildung \ref{fig:regression} zu sehen ist, erzielt das ARIMA-Modell für SPY eine Korrelation von $0{,}975$ und einen MAPE von nur $1{,}37\,\%$, welche auf den ersten Blick eine hohe Prognosequalität suggerieren. Tatsächlich jedoch folgt die Vorhersage lediglich dem langfristigen Aufwärtstrend und antizipiert kaum Wendepunkte, was die scheinbar guten Metrikwerte als statistisches Artefakt entlarvt. Die hohe Korrelation entsteht durch reines Trend-Following, nicht durch echte Vorhersagekraft.
+Wie in Abbildung~\ref{fig:regression} zu sehen ist, folgt die ARIMA-Prognose für DIA dem langfristigen Aufwärtstrend über den gesamten Testzeitraum hinweg eng. Trotz eines $R^2$ von $-0{,}004$ und einer Richtungsgenauigkeit von $0{,}540$ zeigt sich bei näherer Betrachtung, dass das Modell abrupte 
+Kurskorrekturen, wie z.B. den Einbruch Mitte November 2025, kaum antizipiert. Die scheinbar gute visuelle Übereinstimmung ist damit kein Zeichen echter Vorhersagekraft, sondern ein Artefakt des zugrundeliegenden Aufwärtstrends, dem das Modell lediglich folgt.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{images/regression}
     \caption{ARIMA-Prognose vs. tatsächlicher Kurs ($h=5$, Testabschnitt)}
@@ -274,7 +272,7 @@ Wie in Abbildung \ref{fig:regression} zu sehen ist, erzielt das ARIMA-Modell fü
 
 \paragraph{Overfitting}
 
-Ein naheliegender Erklärungsansatz ist \textit{Overfitting}. Vergleicht man Validierungs-$R^2$ und Test-$R^2$, bricht die Ridge Regression zwischen beiden Abschnitten besonders stark ein. Der Random Forest ist etwas stabiler, kommt aber ebenfalls nicht übernegative $R^2$-Werte auf dem Testabschnitt hinaus. Bei über 50 generierten Features und nur ca. 1.400 Trainingsbeobachtungen ist das Verhältnis strukturell ungünstig. Dazu kommt, dass die volatilitätsskalierten Log-Renditen als Zielgröße von Natur aus schwer vorherzusagen sind, was allerdings so beabsichtigt war, um einen realistischen Evaluierungsrahmen zu schaffen.
+Ein naheliegender Erklärungsansatz ist \textit{Overfitting}. Vergleicht man Validierungs-$R^2$ und Test-$R^2$, bricht die Ridge Regression zwischen beiden Abschnitten besonders stark ein. Der Random Forest ist etwas stabiler, kommt aber ebenfalls nicht über negative $R^2$-Werte auf dem Testabschnitt hinaus. Bei über 50 generierten Features und nur ca. 1.400 Trainingsbeobachtungen ist das Verhältnis strukturell ungünstig. Dazu kommt, dass die volatilitätsskalierten Log-Renditen als Zielgröße von Natur aus schwer vorherzusagen sind, was allerdings so beabsichtigt war, um einen realistischen Evaluierungsrahmen zu schaffen.
 
 \subsubsection{Klassifikationsergebnisse}
 
@@ -287,14 +285,14 @@ Der Basisklassifikator gibt bei drei von vier Tickern für weniger als 2\,\% der
 
 \paragraph{Genauigkeit bei hoher Konfidenz}
 
-Wo der Basisklassifikator doch Vorhersagen trifft, sind die Genauigkeitswerte teilweise überraschend hoch. Allerdings basieren diese Werte oft auf sehr kleinen Stichproben von wenigen Beobachtungen, weshalb diese Werte nur bedingt interpretierbar sind. Es könnte ein echtes Signal vorhanden sein oder ein einfacher Zufall. Ob ein echtes Signal vorliegt oder ein statistischer Zufall, lässt sich anhand der vorliegenden Datenmenge nicht zuverlässig beurteilen.
+Wo der Basisklassifikator doch Vorhersagen trifft, sind die Genauigkeitswerte teilweise überraschend hoch. Allerdings basieren diese Werte oft auf sehr kleinen Stichproben von wenigen Beobachtungen, weshalb diese Werte nur bedingt interpretierbar sind. Ob ein echtes Signal vorliegt oder ein statistischer Zufall, lässt sich anhand der vorliegenden Datenmenge nicht zuverlässig beurteilen.
 
 \paragraph{Meta- versus Basisklassifikator}
 Der Meta-Klassifikator liefert ein gemischtes Bild: Bei SPY schneidet er deutlich schlechter ab als das einfachere Basismodell, während er bei DIA eine höhere Accuracy erzielt. Bei QQQ und XLE trifft der Basisklassifikator gar keine Vorhersagen, sodass kein direkter Vergleich möglich ist. Insgesamt zeigt sich, dass das Stacking der fehlerhaften Regressionssignale aus Ridge und Random Forest (Abschnitt \ref{regression}) die Eingabe nicht zuverlässig verbessert. Stacking funktioniert nur dann, wenn die gestapelten Modelle zumindest teilweise korrekte Informationen liefern.
 
-Abbildung \ref{fig:classification} verdeutlicht dieses Versagen exemplarisch für SPY: Der Meta-Klassifikator enthält sich in $86{,}8\,\%$ der Fälle und tendiert bei den wenigen abgegebenen Vorhersagen fast ausschließlich zu \textit{Down}, obwohl der Markt imgesamten Testzeitraum einen klaren Aufwärtstrend verzeichnete.
+Abbildung \ref{fig:classification} verdeutlicht dieses Versagen exemplarisch für DIA. Der Meta-Klassifikator trifft nur für $8\%$
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=\textwidth]{images/classification}
     \caption{Meta-Klassifikator-Vorhersagen ($h=5$, Testabschnitt).}
@@ -303,18 +301,4 @@ Abbildung \ref{fig:classification} verdeutlicht dieses Versagen exemplarisch fü
 
 \paragraph{Vergleich zur Basisrate}
 
-Kein Modell erzielt einen stabilen positiven Uplift gegenüber der Mehrheitsklassen-Baseline. Bei längeren Prognosehorizonten kommt erschwerend hinzuGemessen an dieser Baseline erzielen die Klassifikatoren keinen 
-konsistenten Mehrwert., dass Aktienmärkte historisch einen positiven Drift, also mehr Aufwärtsbewegungen als Abwärtsbewegungen, aufweisen. Ein Modell, das immer „aufwärts" vorhersagt, hat damit schon eine recht hohe nominale Accuracy, ohne irgendetwas gelernt zu haben. Gemessen an dieser Baseline erzielen die Klassifikatoren keinen konsistenten Mehrwert.
-
-\subsubsection{Diskussion}
-
-Insgesamt zeichnen die Ergebnisse ein klares Bild: Die untersuchten Modelle sind nicht in der Lage, Renditen liquider ETFs besser als eine triviale Baseline vorherzusagen. Dafür lassen sich zwei Hauptgründe identifizieren.
-
-\paragraph{Markteffizienz}
-Breit gehandelte ETFs wie SPY oder DIA werden von einer Vielzahl professioneller Marktteilnehmer beobachtet und gehandelt. Einfach berechenbare Signale aus historischen Preisdaten, also genau das, was die generierten Features abbilden, werden dadurch sehr schnell eingepreist. Dieser Befund deckt sich mit der Effizienzmarkthypothese in ihrer schwachen Form, nach der vergangene Preise keine Grundlage für überdurchschnittliche Prognosen bieten. \cite{bustos_machine_2025}
-
-\paragraph{Overfitting durch Dimensionalität}
-Hinzu kommt ein technisches Problem: Mit über 50 Features bei nur ca. 1.400 Trainingsbeobachtungen ist das Verhältnis ungünstig. Die Ridge Regression leidet darunter besonders stark, denn während der L2-Penalty \textit{Overfitting} zwar schwächt, reicht er bei diesem Verhältnis aber nicht aus. Der Random Forest ist robuster, kommt aber ebenfalls nicht über negative Testwerte hinaus, weil das grundlegende Rauschen
-in der Zielvariable durch keine Modellarchitektur kompensiert werden kann.
-
-Dass die Ergebnisse so eindeutig negativ ausfallen, ist dennoch ein nützlicher Befund. Es zeigt, wo die Grenzen dieses Ansatzes liegen, nämlich bei einfach extrahierbaren technischen Features auf liquiden Märkten. Zugleich gibt dieser Befund Hinweise darauf, in welche Richtung eine Weiterentwicklung sinnvoll wäre. Ein vielversprechender Ansatz wäre etwa der Einsatz alternativer Datenquellen wie Sentiment-Analysen, die weniger schnell eingepreist werden als technische Preissignale, oder fortschrittlichere Deep-Learning-Modelle, welche komplexe Zeitreihen besser erlernen können.
+Kein Modell erzielt einen stabilen positiven Uplift gegenüber der Mehrheitsklassen-Baseline. Bei längeren Prognosehorizonten kommt erschwerend hinzu, dass Aktienmärkte historisch einen positiven Drift, also mehr Aufwärtsbewegungen als Abwärtsbewegungen, aufweisen. Ein Modell, das immer „aufwärts" vorhersagt, hat damit schon eine recht hohe nominale Accuracy, ohne irgendetwas gelernt zu haben. Gemessen an dieser Baseline erzielen die Klassifikatoren keinen konsistenten Mehrwert.

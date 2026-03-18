@@ -65,54 +65,68 @@
 \pagenumbering{gobble}
 \input{deckblatt}
 
-\newpage
+\clearpage
 \pagenumbering{roman}
 \tableofcontents
-\newpage
+\clearpage
 
 \onehalfspacing %Zeilenabstand: 1,5
 \pagenumbering{arabic}
 \newgeometry{top=2cm,bottom=2cm,left=2cm,right=4cm}
 \section{Einleitung}
-Aktienmärkte gehören zu den komplexesten Systemen, mit denen sich die moderne Wirtschaftswissenschaft beschäftigt. Ob und wie zuverlässig kurzfristige Kursbewegungen vorhergesagt werden können, ist jedoch bis heute eine unbeantwortete Frage, obwohl an den globalen Börsen täglich Milliarden bewegt werden. Diese Frage stellt genau den Ausgangspunkt der vorliegenden Projektarbeit dar.
+Am 5. März 2026 stiegen die globalen Ölpreise innerhalb weniger Stunden um bis zu acht Prozent. Auslöser war eine plötzliche Eskalation des Iran-Konflikts, die den Öltransport durch die Straße von Hormus, eine der wichtigsten Schifffahrtsrouten der Welt, deutlich störte 
+\cite{Reuters}. Aktienmärkte weltweit reagierten sofort. Wer diesen Kursbewegungen auch nur wenige Stunden voraus gewesen wäre, hätte erhebliche Gewinne erzielen können. Diese Projektarbeit stellt sich der Frage, ob sich Bewegungen von Aktienkursen mit Hilfe maschineller Lernverfahren anhand historischer Kursdaten vorhersagen lassen.
 
-Die Motivation für dieses Thema entstand aus zwei unterschiedlichen Perspektiven: Da Maximillian sich für ein späteres Studium der Wirtschaftsinformatik interessiert und dabei insbesondere die Schnittstelle zwischen Softwareentwicklung und ökonomischen Fragestellungen faszinierend findet, befasst er sich mit der theoretischen Analyse (Abschnitt \ref{maxi}). Bei Hannes hingegen enstand, durch einen Vortrag zu Quantitative Finance während einem Auslandsjahr an einer Schule in England, das Interesse daran, wie mathematische Modelle tatsächlich auf Finanzmärkte angewendet werden. Deshalb befasst sich sein Teil mit der technischen Umsetzung der Arbeit (Abschnitt \ref{hannes}). Beide Perspektiven vereinen sich in der zentralen Frage dieser Arbeit: Lassen sich Aktienbewegungen systematisch und methodisch fundiert prognostizieren?
+Die Motivation für dieses Thema entstand aus zwei unterschiedlichen Perspektiven:\newline
+Maximilian interessiert sich für ein späteres Studium der Wirtschaftsinformatik und dabei insbesondere für die Schnittstelle zwischen Softwareentwicklung und ökonomischen Fragestellungen. Deshalb befasst er sich in Abschnitt~\ref{maxi} mit der theoretischen Analyse, von der Effizienzmarkthypothese über Overfitting bis hin zu externen Schocks als Grenze jeder Prognose.\newline
+Bei Hannes hingegen entstand durch einen Vortrag zu \textit{Quantitative Finance} während eines Auslandsjahres an einer Schule in England das Interesse daran, wie mathematische Modelle tatsächlich auf Finanzmärkte angewendet werden. Deshalb behandelt Abschnitt~\ref{hannes} die technische Umsetzung, von der Datenaufbereitung und dem Feature-Engineering über die Modellierung mit Ridge Regression, Random Forest und SARIMA bis hin zur Evaluierung der Ergebnisse.
 
-Ziel der Arbeit ist es, unterschiedliche Modelltypen hinsichtlich ihrer Vorhersageleistung objektiv zu vergleichen. Dazu wurde ein modulares Toolkit namens CastMark entwickelt, das Kursdaten aufbereitet, technische Merkmale berechnet und verschiedene Modelle, von linearer Regression über Random Forests bis hin zu klassischen Zeitreihenmodellen, trainiert und auswertet. Die Ergebnisse werden anhand einheitlicher Metriken verglichen, um eine fundierte Aussage über die Prognostizierbarkeit von Aktienbewegungen treffen zu können.
+Um diese Frage empirisch zu beantworten, wurde ein modulares Toolkit namens \textit{CastMark} entwickelt. Der Name leitet sich dabei von Fore\textbf{cast}ing Bench\textbf{mark} ab. Es bereitet heruntergeladene Kursdaten auf, berechnet technische Merkmale und trainiert verschiedene Modelle. Die Ergebnisse werden anhand einheitlicher Metriken verglichen, um eine fundierte Aussage über die Prognostizierbarkeit von Aktienbewegungen treffen zu können.
 
-Dabei ist ausdrücklich zu betonen, dass diese Arbeit keinen Anspruch auf finanzielle Beratung erhebt und kein Handelsprodukt darstellt. Im Vordergrund steht der methodische Vergleich verschiedener Ansätze sowie die Reproduzierbarkeit der Ergebnisse.
-
-\newpage
+\clearpage
 \input{hannes}
-\newpage
+\clearpage
 \input{maxi}
-\newpage
+\clearpage
 
-\section{Evaluierung}
-Die Resultate der beiden Abschnitte dieser Projektarbeit ergänzen sich zu einem schlüssigen Gesamtbild: Kurzfristige Aktienbegweungen können unter realen Marktbedingungen mit den hier verwendeten Methoden nicht zuverlässig vorhergesagt werden.
+\section{Evaluierung und Fazit}
 
-Technisch betrachtet weist die Regressionsauswertung ein unmissverständliches Resultat auf: Alle Machine-Learning-Modelle weisen im Testabschnitt ein negatives R² auf, was bedeutet, dass sie schlechter abschneiden als die triviale Null-Prognose, die eine Rendite von null voraussagt. Dieses Resultat stellt keinen Einzelfall dar, sondern einen konsistenten Befund über alle vier untersuchten ETFs (SPY, QQQ, DIA, XLE) und über alle Prognosehorizonte. Auch in Bezug auf die Richtungsgenauigkeit liegen die ML-Modelle konstant unter 50 Prozent und erzielen damit schlechtere Ergebnisse als zufälliges Raten. Nur ARIMA erreicht bei bestimmten Ticker-Horizont-Kombinationen Werte, die leicht über 50\% liegen, und das ohne den Einsatz von Feature-Engineering. Dies deutet darauf hin, dass die hochdimensionale Feature-Matrix der ML-Modelle mehr Rauschen als Signal in die Prognose einbringt. Auch die Ergebnisse der Klassifikation untermauern diese Darstellung: Der Basisklassifikator abstiniert in der überwiegenden Zahl der Fälle nahezu vollständig, da er nur wenige Beobachtungen mit ausreichend hoher Konfidenz identifiziert.Der Meta-Klassifikator, der auf den Vorhersagen von Ridge und Random Forest basiert, verschlechtert sich im Vergleich zum einfacheren Basismodell, da er fehlerhafte Signale als zusätzlichen Input erhält und dadurch das Rauschen in der Eingabe erhöht, anstatt es zu reduzieren. Die naive Mehrheitsklassen-Baseline ist das einzige Modell, das keinen Konsistenztest besteht.
+Die Resultate der beiden Abschnitte dieser Projektarbeit ergänzen sich zu einem schlüssigen Gesamtbild: Kurzfristige Aktienbewegungen können unter realen Marktbedingungen mit den hier verwendeten Methoden nicht zuverlässig vorhergesagt werden.
 
-Drei zentrale Erklärungsrahmen für diese Befunde werden durch die theoretische Analyse bereitgestellt. In ihrer schwachen Form beschreibt die Effizienzmarkthypothese, dass in liquiden, breit gehandelten Märkten vergangene Preise bereits vollständig berücksichtigt wurden und somit keine Grundlage für überdurchschnittliche Prognosen bieten — genau das ist die Bedingung für die hier untersuchten ETFs. Zweitens wird deutlich, dass es sich bei der theoretischen Beschäftigung mit Overfitting und der Illusion von Vorhersagbarkeit um ein Problem handelt, das zu leicht aussehenden Mustern in historischen Daten führt, die bei einer echten Out-of-Sample-Prüfung nicht bestätigt werden können. Das ungünstige Verhältnis von generierten Features zu Trainingsbeobachtungen (über 70 generierte Features bei nur rund 1.400 Trainingsbeobachtungen) zwingt beide Regressionsmodelle zu einer Überanpassung an die Trainingsdaten, die nicht generalisierbar ist. Als Drittes wird durch die Debatte über Nicht-Stationarität, strukturelle Brüche und externe Schocks deutlich, weshalb selbst ein perfekt kalibriertes Modell an seine Grenzen stößt: Im Lauf der Zeit wandeln sich die Märkte und ihre statistische Struktur. Unvorhersehbare Ereignisse, wie etwa geopolitische Krisen oder makroökonomische Schocks, überdecken dabei jedes stabile Muster.
+Auf der technischen Seite ist das Bild eindeutig. Alle ML-Modelle erzielen im Testabschnitt ein negatives $R^2$ und schneiden damit schlechter ab als eine Null-Prognose, die schlicht eine Rendite von null vorhersagt. Das gilt nicht nur für einen ETF oder einen Prognosehorizont, sondern konsistent über alle vier untersuchten Ticker (SPY, QQQ, DIA, XLE) hinweg. Bei der Richtungsgenauigkeit liegen die ML-Modelle durchgehend unter 50\,\% und sind damit schlechter als zufälliges Raten. Interessanterweise erreicht SARIMA bei einzelnen Kombinationen wie DIA bei $h=5$ eine Richtungsgenauigkeit von $0{,}537$, und das, obwohl es kein Feature-Engineering verwendet. Das legt nahe, dass die vielen generierten Features das Modell eher verwirren als ihm helfen.\newline
+Auch die Klassifikationsergebnisse fügen sich in dieses Bild. Der Basisklassifikator enthält sich bei drei von vier Tickern fast vollständig, weil er kaum Beobachtungen mit ausreichender Konfidenz findet. Der Meta-Klassifikator, der die Vorhersagen von Ridge, Random Forest und SARIMA als Input nutzt, schneidet sogar noch schlechter bei der \textit{Coverage} ab. Dies ist aber ebenfalls nicht überraschend, wenn die zugrundeliegenden Signale der Input-Modelle bereits fehlerhaft sind.
 
-Abschließend lässt sich festhalten, dass das konsistente Nullergebnis dieser Arbeit kein Enttäuschung, sondern ein sinnvoller wissenschaftlicher Beitrag ist. Es liefert empirische Evidenz, dass die untersuchte Kombination von öffentlich verfügbaren Preisdaten, technischen Indikatoren und klassischen ML-Modellen nicht über die in die Testmodelle integrierten Muster hinausgeht, um in den auf KI basierenden Ergebnisse nicht erkennbare Muster zu finden -Markttrends und dergleichen. Dies hilft, die realen Grenzen der LFMA-Daten bei Aktienprognosen realistisch einzuschätzen.
+Die theoretische Analyse gibt drei Erklärungen für dieses Ergebnis:\newline
+Erstens beschreibt die Effizienzmarkthypothese in ihrer schwachen Form, dass in liquiden, breit gehandelten Märkten vergangene Preise bereits vollständig eingepreist sind und somit keine Grundlage für überdurchschnittliche Prognosen bieten.\newline
+Zweitens führt Overfitting dazu, dass Modelle zwar in historischen Daten scheinbar stabile Muster erkennen, diese sich im Test Abschnitt jedoch nicht bestätigen. Das ungünstige Verhältnis von über 50 generierten Features zu nur rund 1.400 Trainingsbeobachtungen zwingt beide Regressionsmodelle zu einer Überanpassung, die nicht generalisierbar ist. Auch der L2-Penalty der Ridge Regression reicht dabei nicht aus, um diesen Effekt zu kompensieren.\newline
+Drittens zeigt die Debatte um Nicht-Stationarität, dass auch ein perket kalibriertes Modell an seine Grenzen stößen würde, da unvorhersehbare Ereignisse jedes stabile Muster überdecken.
 
-\newpage
+\subsection*{Fazit}
+
+Ein Besipiel für so ein unvorhersehbares Ereignis ist das, im Theorieteil eingeleitete, Beispiel des Iran-Konflikts vom März 2026. Es zeigt wie geopolitische Ereignisse innerhalb weniger Stunden massive Kursbewegungen auslösen können. Dies sind Bewegungen, die kein auf historischen Preisdaten basierendes Modell hätte antizipieren können. \cite{Reuters} Genau diese Grenzen der Modelle spiegeln sich in den Ergebnissen dieser Arbeit wider.
+
+Das konsistente Nullergebnis ist dabei keine Enttäuschung, sondern ein sinnvoller wissenschaftlicher Beitrag. Es liefert empirische Evidenz dafür, dass die Kombination aus öffentlich verfügbaren Preisdaten, technischen Indikatoren und klassischen ML-Modellen auf liquiden Märkten nicht ausreicht, um systematisch verwertbare Prognosen zu erzeugen. Damit bestätigen die Ergebnisse sowohl die theoretischen Vorhersagen der Effizienzmarkthypothese als auch die in der Literatur beschriebenen Grenzen von Overfitting und Nicht-Stationarität.
+
+Für zukünftige Arbeiten ergeben sich aus diesen Befunden konkrete Ansatzpunkte. Vielversprechend wäre der Einsatz alternativer Datenquellen wie Sentiment-Analysen aus Nachrichtentexten oder sozialen Medien, da diese Informationen enthalten, die sich nicht direkt aus historischen Kursdaten ableiten lassen und daher langsamer eingepreist werden. Auch komplexere Architekturen wie LSTM-Netze, die komplexe zeitliche Abhängigkeiten in Finanzzeitreihen besser erfassen können, stellen eine sinnvolle Erweiterung dar. Nicht zuletzt wäre es interessant, dieselbe Methodik auf weniger liquide Märkte anzuwenden, in denen die Effizienzmarkthypothese in ihrer schwachen Form möglicherweise nicht in gleichem Maße gilt.
+
+Diese Arbeit zeigt damit nicht nur, wo die Grenzen einfacher ML-Ansätze bei der Aktienprognose liegen, sondern gibt auch eine klare Richtung vor, in welche eine Weiterentwicklung sinnvoll wäre.
+
+\clearpage
 \singlespacing %Zeilenabstand: 1,0
 \pagenumbering{roman}
 \newgeometry{top=2cm,bottom=2cm,left=2cm,right=2cm}
 \appendix
-\newpage
+\clearpage
 \printbibliography[heading=bibintoc]
-\newpage
+\clearpage
 \addcontentsline{toc}{section}{\listfigurename}
 \listoffigures
-\newpage
+\clearpage
 \addcontentsline{toc}{section}{\listtablename}
 \listoftables
-\newpage
+\clearpage
 \input{hilfsmittel}
-%\newpage
+%\clearpage
 %\section*{Quellcode}
 %\lstinputlisting[language=Python]{castmark/__init__.py}
 %\lstinputlisting[language=Python]{castmark/__main__.py}
