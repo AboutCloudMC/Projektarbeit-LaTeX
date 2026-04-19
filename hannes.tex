@@ -232,10 +232,10 @@ Um die Leistung der behandelten Modelle objektiv beurteilen zu können, wird ein
 Für die Regressionsmodelle werden folgende Metriken als Fehlermaße verwendet:
 \begin{itemize}
     \item \texttt{Root Mean Squared Error (RMSE)} misst den mittleren quadratischen Abstand zwischen Vorhersage und tatsächlichem Wert und wichtet daher große Fehler stärker. \cite[Kapitel 5.8]{fpp}
-    \item \texttt{Mean Absolute Error (MAE)}, welcher den durchschnittlichen absoluten Abstand zwischen Vorhersage und tatsächlichem Wert misst. \cite[Kapitel 5.8]{fpp}
+    \item \texttt{Mean Absolute Error (MAE)} misst den durchschnittlichen absoluten Abstand zwischen Vorhersage und tatsächlichem Wert. \cite[Kapitel 5.8]{fpp}
     \item \texttt{symmetric Mean Absolute Percentage Error (sMAPE)}, der den prozentualen Fehler relativ zur Größe der Werte misst und dabei symmetrisch für Über- und Unterschätzungen ist. \cite[Kapitel 5.8]{fpp}
     \item \texttt{Bestimmtheitsmaß $R^2$}, das misst, wie viel besser das Modell im Vergleich zur Null-Baseline abschneidet, wobei $R^2 = 1$ einer perfekten Vorhersage und $R^2 < 0$ einer schlechteren Vorhersage als die Null-Baseline entspricht. \cite[Kapitel 7.2]{fpp}
-    \item \texttt{Richtungsgenauigkeit (Directional Accuracy)}, welche den Anteil der Beobachtungen misst, bei denen das Modell die Bewegungsrichtung korrekt vorhersagt.
+    \item \texttt{Richtungsgenauigkeit (Directional Accuracy)} misst den Anteil der Beobachtungen, bei denen das Modell die Bewegungsrichtung korrekt vorhersagt.
 \end{itemize}
 Für die Klassifikation werden hingegen folgende Maße verwendet:
 \begin{itemize}
@@ -271,7 +271,7 @@ Kurskorrekturen, wie z.B. den Einbruch Mitte November 2025, kaum antizipiert. Di
 
 \paragraph{Overfitting}
 
-Ein naheliegender Erklärungsansatz ist \textit{Overfitting}. Vergleicht man Validierungs-$R^2$ und Test-$R^2$, bricht die Ridge Regression zwischen beiden Abschnitten besonders stark ein. Der Random Forest ist etwas stabiler, kommt aber ebenfalls nicht über negative $R^2$-Werte im Testabschnitt hinaus. Bei über 50 generierten Features und nur ca. 1.400 Trainingsbeobachtungen ist das Verhältnis strukturell ungünstig. Dazu kommt, dass die volatilitätsskalierten Log-Renditen als Zielgröße von Natur aus schwer vorherzusagen sind, was jedoch so beabsichtigt war, um einen realistischen Evaluierungsrahmen zu schaffen.
+Ein naheliegender Erklärungsansatz ist \textit{Overfitting}. Vergleicht man Validierungs-$R^2$ und Test-$R^2$, bricht die Ridge Regression zwischen beiden Abschnitten besonders stark ein. Der Random Forest ist etwas stabiler, kommt jedoch ebenfalls nicht über negative $R^2$-Werte im Testabschnitt hinaus. Bei über 50 generierten Features und nur ca. 1.400 Trainingsbeobachtungen ist das Verhältnis strukturell ungünstig. Dazu kommt, dass die volatilitätsskalierten Log-Renditen als Zielgröße von Natur aus schwer vorherzusagen sind, was jedoch so beabsichtigt war, um einen realistischen Evaluierungsrahmen zu schaffen.
 
 \subsubsection{Klassifikationsergebnisse}
 
@@ -289,7 +289,7 @@ Wo der Basisklassifikator doch Vorhersagen trifft, sind die Genauigkeitswerte te
 \paragraph{Meta- versus Basisklassifikator}
 Der Meta-Klassifikator liefert ein gemischtes Bild: Bei SPY schneidet er deutlich schlechter ab als das einfachere Basismodell, während er bei DIA eine höhere Accuracy erzielt. Bei QQQ und XLE trifft der Basisklassifikator gar keine Vorhersagen, sodass kein direkter Vergleich möglich ist. Insgesamt zeigt sich, dass das Stacking der fehlerhaften Regressionssignale aus Ridge und Random Forest (Abschnitt \ref{regression}) die Eingabe nicht zuverlässig verbessert. Stacking funktioniert nur, wenn die gestapelten Modelle zumindest teilweise korrekte Informationen liefern.
 
-Abbildung \ref{fig:classification} verdeutlicht dieses Versagen exemplarisch für DIA. Der Meta-Klassifikator trifft nur für $8\%$
+Abbildung \ref{fig:classification} verdeutlicht dieses Versagen exemplarisch für DIA. Der Meta-Klassifikator liefert nur für $7{,}8\%$ eine Prognose, obwohl der Ticker einem einigermaßen gleichmäßigen Trend nach oben folgt.
 
 \begin{figure}[H]
     \centering
